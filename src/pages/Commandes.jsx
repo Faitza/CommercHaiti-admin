@@ -190,6 +190,23 @@ function DetailCommande({ commande: c, client, boutique, onFermer, onMaj, onErre
         {c.litige_statut && (
           <p className="mt-1"><span className="text-slate-500">Motif : </span>{c.litige_motif || '—'}</p>
         )}
+        {/* Litige signalé par le client depuis l'app (migration_litige_client.sql du dépôt mobile). */}
+        {c.litige_ouvert_par === 'client' && (
+          <p className="mt-1 text-xs text-slate-500">
+            Signalé par le client depuis l'app
+            {c.litige_date ? ` le ${new Date(c.litige_date).toLocaleString('fr-FR')}` : ''}
+          </p>
+        )}
+        {c.litige_photos?.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {c.litige_photos.map((url, i) => (
+              <a key={url} href={url} target="_blank" rel="noreferrer" title={`Photo ${i + 1}`}>
+                <img src={url} alt={`Photo ${i + 1} du litige`}
+                  className="h-20 w-20 rounded-lg border border-slate-200 object-cover" />
+              </a>
+            ))}
+          </div>
+        )}
         {c.litige_statut === 'ouvert' && (
           <>
             <textarea value={resolution} onChange={(e) => setResolution(e.target.value)} rows={3}
