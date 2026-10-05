@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 
+const url = import.meta.env.VITE_SUPABASE_URL
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+
 const AuthContext = createContext(null)
 
 /**
@@ -44,7 +47,15 @@ export function AuthProvider({ children }) {
 
   async function connexion(email, motDePasse) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password: motDePasse })
-    if (error) return 'Email ou mot de passe incorrect.'
+    if (error) {
+      // Supabase injoignable (variables Vercel absentes ou URL fausse) :
+      // ne pas le confondre avec un mauvais mot de passe.
+      if (!url || !anonKey || error.name === 'AuthRetryableFetchError' || error.status === 0) {
+        return `Impossible de joindre Supabase (${url || 'VITE_SUPABASE_URL manquant'}). Vérifier les variables Vercel puis Redeploy.`
+      }
+      if (error.code === 'email_not_confirmed') return 'Email pas encore confirmé.'
+      return 'Email ou mot de passe incorrect.'
+    }
     return verifierAdmin(data.user)
   }
 
