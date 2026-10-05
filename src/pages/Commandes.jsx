@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import Icone from '../components/Icone'
 import { supabase } from '../lib/supabase'
 import { logAction } from '../lib/adminLog'
 import { dateHeure, htg, STATUTS_COMMANDE } from '../lib/format'
@@ -155,7 +156,7 @@ function DetailCommande({ commande: c, client, boutique, onFermer, onMaj, onErre
     <Carte className="p-5 h-fit xl:sticky xl:top-8">
       <div className="flex justify-between">
         <h2 className="font-bold text-navy">Commande {c.id.slice(0, 8)}</h2>
-        <button onClick={onFermer} className="text-slate-400 hover:text-slate-600" aria-label="Fermer">✕</button>
+        <button onClick={onFermer} className="text-slate-400 hover:text-slate-600" aria-label="Fermer"><Icone nom="fermer" /></button>
       </div>
       <dl className="mt-3 space-y-1 text-sm">
         <div><dt className="inline text-slate-500">Client : </dt><dd className="inline">{client ?? '—'} · {c.telephone_client}</dd></div>

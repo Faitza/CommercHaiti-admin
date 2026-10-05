@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import Icone from '../components/Icone'
 import { supabase } from '../lib/supabase'
 import { logAction } from '../lib/adminLog'
 import { date } from '../lib/format'
@@ -91,7 +92,12 @@ export default function Boutiques() {
             },
           },
           { titre: 'Catégories', rendu: (b) => (b.categories?.length ? b.categories.join(', ') : '—') },
-          { titre: 'Note', rendu: (b) => `★ ${Number(b.rating).toFixed(1)} (${b.total_avis})` },
+          { titre: 'Note', rendu: (b) => (
+            <span className="inline-flex items-center gap-1 whitespace-nowrap">
+              <Icone nom="etoile" className="h-3.5 w-3.5 text-ambre" />
+              {Number(b.rating).toFixed(1)}<span className="text-slate-400">({b.total_avis})</span>
+            </span>
+          ) },
           { titre: 'Créée le', rendu: (b) => date(b.created_at) },
           {
             titre: 'Statut',

@@ -4,7 +4,7 @@ export function EnTete({ titre, sousTitre, children }) {
   return (
     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 className="text-2xl font-bold text-navy">{titre}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-navy">{titre}</h1>
         {sousTitre && <p className="text-sm text-slate-500">{sousTitre}</p>}
       </div>
       <div className="flex flex-wrap gap-2">{children}</div>
@@ -13,7 +13,7 @@ export function EnTete({ titre, sousTitre, children }) {
 }
 
 export function Carte({ children, className = '' }) {
-  return <div className={`rounded-xl bg-white shadow-sm ${className}`}>{children}</div>
+  return <div className={`rounded-xl border border-slate-200/70 bg-white shadow-sm ${className}`}>{children}</div>
 }
 
 const TONS = {
@@ -86,7 +86,7 @@ export function Tableau({ colonnes, lignes, cle = 'id', vide = 'Aucun résultat'
     <Carte className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-100 text-left text-xs uppercase text-slate-500">
+          <tr className="border-b border-slate-200 bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
             {colonnes.map((c) => (
               <th key={c.titre} className={`px-4 py-3 font-semibold ${c.className ?? ''}`}>{c.titre}</th>
             ))}
@@ -99,7 +99,7 @@ export function Tableau({ colonnes, lignes, cle = 'id', vide = 'Aucun résultat'
             </tr>
           )}
           {lignes.map((l) => (
-            <tr key={l[cle]} className="border-b border-slate-50 last:border-0 align-top">
+            <tr key={l[cle]} className="border-b border-slate-100 last:border-0 align-top hover:bg-slate-50/60">
               {colonnes.map((c) => (
                 <td key={c.titre} className={`px-4 py-3 ${c.className ?? ''}`}>{c.rendu(l)}</td>
               ))}
