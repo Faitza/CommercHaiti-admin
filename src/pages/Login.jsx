@@ -24,13 +24,12 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-navy px-4">
-      <form onSubmit={soumettre} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
-        <div className="mb-6 text-center">
-          <div className="text-2xl font-bold text-navy">
-            CommercHaiti <span className="text-rouge">Admin</span>
-          </div>
-          <p className="mt-1 text-sm text-slate-500">Espace réservé aux administrateurs</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-navy to-navy-dark px-4">
+      <img src="/logo.png" alt="CommercHaiti" className="mb-6 h-36" />
+      <form onSubmit={soumettre} className="w-full max-w-sm rounded-xl bg-white p-8 shadow-2xl">
+        <div className="mb-6">
+          <h1 className="text-xl font-bold text-navy">Espace administrateur</h1>
+          <p className="mt-1 text-sm text-slate-500">Connectez-vous pour gérer la plateforme.</p>
         </div>
 
         {erreur && <div className="mb-4 rounded-lg bg-rouge/10 px-3 py-2 text-sm text-rouge">{erreur}</div>}
@@ -53,11 +52,12 @@ export default function Login() {
         />
         <button
           disabled={envoi}
-          className="w-full rounded-lg bg-rouge py-2.5 font-semibold text-white hover:opacity-90 disabled:opacity-60"
+          className="w-full rounded-lg bg-navy py-2.5 font-semibold text-white hover:bg-navy-dark disabled:opacity-60"
         >
           {envoi ? 'Connexion…' : 'Se connecter'}
         </button>
       </form>
+      <p className="mt-6 text-xs text-white/40">© {new Date().getFullYear()} CommercHaiti · Accès réservé</p>
     </div>
   )
 }
