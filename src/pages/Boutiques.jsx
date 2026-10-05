@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Icone from '../components/Icone'
 import { supabase } from '../lib/supabase'
 import { logAction } from '../lib/adminLog'
@@ -79,7 +80,7 @@ export default function Boutiques() {
             titre: 'Boutique',
             rendu: (b) => (
               <div>
-                <div className="font-semibold">{b.nom}</div>
+                <Link to={`/boutiques/${b.id}`} className="font-semibold text-navy hover:underline">{b.nom}</Link>
                 <div className="text-xs text-slate-400">{b.shop_code}</div>
               </div>
             ),

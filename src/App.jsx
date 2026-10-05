@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Boutiques from './pages/Boutiques'
+import BoutiqueDetail from './pages/BoutiqueDetail'
 import Comptes from './pages/Comptes'
 import Commandes from './pages/Commandes'
 import Produits from './pages/Produits'
@@ -23,6 +24,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<Protege><Dashboard /></Protege>} />
       <Route path="/boutiques" element={<Protege><Boutiques /></Protege>} />
+      <Route path="/boutiques/:id" element={<Protege><BoutiqueDetail /></Protege>} />
       <Route path="/vendeurs" element={<Protege><Comptes role="seller" /></Protege>} />
       <Route path="/clients" element={<Protege><Comptes role="customer" /></Protege>} />
       <Route path="/commandes" element={<Protege><Commandes /></Protege>} />
