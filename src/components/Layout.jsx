@@ -21,6 +21,13 @@ const SECTIONS = [
 
 const TITRES = Object.fromEntries(SECTIONS.flatMap(([, liens]) => liens.map(([to, libelle]) => [to, libelle])))
 
+// Titre du fil d'Ariane, y compris pour les pages détail (/boutiques/:id).
+function titre(pathname) {
+  if (TITRES[pathname]) return TITRES[pathname]
+  if (pathname.startsWith('/boutiques/')) return 'Boutiques / Fiche boutique'
+  return ''
+}
+
 function Marque({ taille = 'h-9' }) {
   return (
     <span className="flex items-center gap-2.5">
@@ -109,7 +116,7 @@ export default function Layout({ children }) {
         <div className="hidden md:flex h-14 items-center justify-between border-b border-slate-200 bg-white px-8">
           <span className="text-sm text-slate-500">
             Administration <span className="mx-1.5 text-slate-300">/</span>
-            <span className="font-medium text-slate-800">{TITRES[pathname] ?? ''}</span>
+            <span className="font-medium text-slate-800">{titre(pathname)}</span>
           </span>
           <span className="text-xs text-slate-400">
             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
