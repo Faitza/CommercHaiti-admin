@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import Icone from './Icone'
+
 // Composants d'interface partagés par les pages.
 
 export function EnTete({ titre, sousTitre, children }) {
@@ -80,8 +83,29 @@ export function Filtres({ options, valeur, onChange }) {
 /**
  * Tableau simple. `colonnes` : [{ titre, rendu: (ligne) => node, className }]
  * Défile horizontalement sur petit écran.
+ * `groupes` (facultatif) : [{ cle, titre: node, resume: node, lignes }] remplace
+ * `lignes` et affiche chaque groupe sous un en-tête qu'on peut replier.
  */
-export function Tableau({ colonnes, lignes, cle = 'id', vide = 'Aucun résultat' }) {
+export function Tableau({ colonnes, lignes, groupes, cle = 'id', vide = 'Aucun résultat' }) {
+  const [replies, setReplies] = useState(() => new Set())
+  const basculer = (k) =>
+    setReplies((r) => {
+      const n = new Set(r)
+      if (n.has(k)) n.delete(k)
+      else n.add(k)
+      return n
+    })
+  const total = groupes ? groupes.reduce((s, g) => s + g.lignes.length, 0) : lignes.length
+
+  const rangees = (liste) =>
+    liste.map((l) => (
+      <tr key={l[cle]} className="border-b border-slate-100 last:border-0 align-top hover:bg-slate-50/60">
+        {colonnes.map((c) => (
+          <td key={c.titre} className={`px-4 py-3 ${c.className ?? ''}`}>{c.rendu(l)}</td>
+        ))}
+      </tr>
+    ))
+
   return (
     <Carte className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -92,20 +116,31 @@ export function Tableau({ colonnes, lignes, cle = 'id', vide = 'Aucun résultat'
             ))}
           </tr>
         </thead>
-        <tbody>
-          {lignes.length === 0 && (
+        {total === 0 && (
+          <tbody>
             <tr>
               <td colSpan={colonnes.length} className="px-4 py-10 text-center text-slate-400">{vide}</td>
             </tr>
-          )}
-          {lignes.map((l) => (
-            <tr key={l[cle]} className="border-b border-slate-100 last:border-0 align-top hover:bg-slate-50/60">
-              {colonnes.map((c) => (
-                <td key={c.titre} className={`px-4 py-3 ${c.className ?? ''}`}>{c.rendu(l)}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
+          </tbody>
+        )}
+        {!groupes && <tbody>{rangees(lignes)}</tbody>}
+        {groupes?.map((g) => {
+          const ouvert = !replies.has(g.cle)
+          return (
+            <tbody key={g.cle} className="border-b border-slate-200 last:border-0">
+              <tr className="cursor-pointer bg-fond/70 hover:bg-fond" onClick={() => basculer(g.cle)}>
+                <td colSpan={colonnes.length} className="px-4 py-2.5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <Icone nom="chevron" className={`h-4 w-4 text-slate-400 transition-transform ${ouvert ? 'rotate-90' : ''}`} />
+                    <span className="font-semibold text-navy">{g.titre}</span>
+                    <span className="text-xs text-slate-500">{g.resume}</span>
+                  </div>
+                </td>
+              </tr>
+              {ouvert && rangees(g.lignes)}
+            </tbody>
+          )
+        })}
       </table>
     </Carte>
   )

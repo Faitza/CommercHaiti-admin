@@ -4,7 +4,9 @@ import { supabase } from '../lib/supabase'
 import { logAction } from '../lib/adminLog'
 import { date, dateHeure, htg, STATUTS_COMMANDE } from '../lib/format'
 import { JOURS, aUnHoraire, heure, statutOuverture } from '../lib/horaire'
-import { Badge, Bouton, Carte, Erreur, Chargement, Tableau } from '../components/ui'
+import { Badge, Bouton, Carte, Erreur, Chargement, Recherche, Tableau } from '../components/ui'
+import GrouperPar from '../components/GrouperPar'
+import { grouperCommandes, lireGroupement, sauverGroupement } from '../lib/grouperCommandes'
 import Icone from '../components/Icone'
 
 const STATUTS_BOUTIQUE = {
@@ -16,6 +18,8 @@ const STATUTS_BOUTIQUE = {
 const TONS_COMMANDE = {
   nouvelle: 'navy', acceptee: 'navy', preparation: 'ambre', livraison: 'ambre', livree: 'vert', annulee: 'gris',
 }
+
+const CLE_GROUPEMENT = 'admin.fiche-boutique.commandes.grouper'
 
 const NON_RENSEIGNE = <span className="text-slate-400">Non renseigné</span>
 
@@ -70,6 +74,11 @@ export default function BoutiqueDetail() {
   const [erreur, setErreur] = useState(null)
   const [enCours, setEnCours] = useState(false)
   const [toutAfficher, setToutAfficher] = useState(false)
+  const [recherche, setRecherche] = useState('')
+  const [groupement, setGroupement] = useState(() => {
+    const v = lireGroupement(CLE_GROUPEMENT)
+    return v === 'boutique' ? 'aucun' : v
+  })
 
   useEffect(() => {
     ;(async () => {
@@ -145,6 +154,25 @@ export default function BoutiqueDetail() {
       activite: historique(d),
     }
   }, [d])
+
+  // Recherche rapide dans les commandes : n°, client, téléphone, zone, adresse.
+  const commandesVisibles = useMemo(() => {
+    if (!d) return []
+    const q = recherche.trim().toLowerCase()
+    if (!q) return d.commandes
+    return d.commandes.filter((c) =>
+      `${c.id} ${d.noms[c.client_id] ?? ''} ${c.telephone_client ?? ''} ${c.zone ?? ''} ${c.adresse_livraison ?? ''}`
+        .toLowerCase().includes(q))
+  }, [d, recherche])
+  const groupesCommandes = useMemo(
+    () => grouperCommandes(commandesVisibles, groupement, { client: d?.noms }),
+    [commandesVisibles, groupement, d],
+  )
+
+  function changerGroupement(v) {
+    setGroupement(v)
+    sauverGroupement(CLE_GROUPEMENT, v)
+  }
 
   if (erreur) {
     return (
@@ -364,14 +392,24 @@ export default function BoutiqueDetail() {
         ]}
       />
 
-      <h2 className="mt-8 mb-3 font-semibold text-navy">Commandes ({commandes.length})</h2>
+      <div className="mt-8 mb-3 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-semibold text-navy">
+          Commandes ({recherche.trim() ? `${commandesVisibles.length} sur ${commandes.length}` : commandes.length})
+        </h2>
+        <div className="flex flex-wrap items-center gap-3">
+          <Recherche valeur={recherche} onChange={setRecherche} placeholder="N°, client, téléphone, zone…" />
+          <GrouperPar valeur={groupement} onChange={changerGroupement} sans={['boutique']} />
+        </div>
+      </div>
       <Tableau
-        lignes={commandes}
-        vide="Aucune commande"
+        lignes={commandesVisibles}
+        groupes={groupesCommandes}
+        vide={recherche.trim() ? 'Aucune commande ne correspond à la recherche' : 'Aucune commande'}
         colonnes={[
           { titre: 'Commande', rendu: (c) => <span className="font-mono text-xs">{c.id.slice(0, 8)}</span> },
-          { titre: 'Client', rendu: (c) => noms[c.client_id] ?? '—' },
-          { titre: 'Zone', rendu: (c) => c.zone || '—' },
+          groupement !== 'client' && { titre: 'Client', rendu: (c) => noms[c.client_id] ?? '—' },
+          { titre: 'Téléphone', className: 'whitespace-nowrap', rendu: (c) => c.telephone_client || '—' },
+          groupement !== 'zone' && { titre: 'Zone', rendu: (c) => c.zone || '—' },
           { titre: 'Total', className: 'whitespace-nowrap', rendu: (c) => htg(c.total) },
           {
             titre: 'Statut',
@@ -384,7 +422,7 @@ export default function BoutiqueDetail() {
             ),
           },
           { titre: 'Date', className: 'whitespace-nowrap', rendu: (c) => dateHeure(c.created_at) },
-        ]}
+        ].filter(Boolean)}
       />
 
       <h2 className="mt-8 mb-3 font-semibold text-navy">Avis clients ({avis.length})</h2>

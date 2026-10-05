@@ -4,10 +4,14 @@ import { supabase } from '../lib/supabase'
 import { logAction } from '../lib/adminLog'
 import { dateHeure, htg, STATUTS_COMMANDE } from '../lib/format'
 import { Badge, Bouton, Carte, EnTete, Erreur, Filtres, Recherche, Tableau, Chargement } from '../components/ui'
+import GrouperPar from '../components/GrouperPar'
+import { grouperCommandes, lireGroupement, sauverGroupement } from '../lib/grouperCommandes'
 
 const TON_STATUT = {
   nouvelle: 'navy', acceptee: 'navy', preparation: 'ambre', livraison: 'ambre', livree: 'vert', annulee: 'gris',
 }
+
+const CLE_GROUPEMENT = 'admin.commandes.grouper'
 
 // /commandes — toutes les commandes + gestion des litiges.
 export default function Commandes() {
@@ -15,6 +19,7 @@ export default function Commandes() {
   const [noms, setNoms] = useState({ users: {}, shops: {} })
   const [filtre, setFiltre] = useState('tous')
   const [recherche, setRecherche] = useState('')
+  const [groupement, setGroupement] = useState(() => lireGroupement(CLE_GROUPEMENT))
   const [selection, setSelection] = useState(null)
   const [erreur, setErreur] = useState(null)
 
@@ -52,6 +57,16 @@ export default function Commandes() {
     })
   }, [commandes, filtre, recherche, noms])
 
+  const groupes = useMemo(
+    () => grouperCommandes(visibles, groupement, { client: noms.users, boutique: noms.shops }),
+    [visibles, groupement, noms],
+  )
+
+  function changerGroupement(v) {
+    setGroupement(v)
+    sauverGroupement(CLE_GROUPEMENT, v)
+  }
+
   if (!commandes && !erreur) return <Chargement />
   const nbLitiges = commandes?.filter((c) => c.litige_statut === 'ouvert').length ?? 0
 
@@ -61,19 +76,22 @@ export default function Commandes() {
         <Recherche valeur={recherche} onChange={setRecherche} placeholder="N°, client, boutique, téléphone…" />
       </EnTete>
       <Erreur message={erreur} />
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <Filtres valeur={filtre} onChange={setFiltre}
           options={[['tous', 'Toutes'], ['litiges', `Litiges (${nbLitiges})`], ...Object.entries(STATUTS_COMMANDE)]} />
+        <GrouperPar valeur={groupement} onChange={changerGroupement} />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_380px]">
+      <div className={`grid gap-4 ${selection ? 'xl:grid-cols-[1fr_380px]' : ''}`}>
         <Tableau
           lignes={visibles}
+          groupes={groupes}
           colonnes={[
             { titre: 'N°', rendu: (c) => <span className="font-mono text-xs">{c.id.slice(0, 8)}</span> },
             { titre: 'Date', rendu: (c) => dateHeure(c.created_at) },
-            { titre: 'Client', rendu: (c) => noms.users[c.client_id] ?? '—' },
-            { titre: 'Boutique', rendu: (c) => noms.shops[c.shop_id] ?? '—' },
+            // La colonne qui sert à grouper est déjà dans l'en-tête du groupe.
+            groupement !== 'client' && { titre: 'Client', rendu: (c) => noms.users[c.client_id] ?? '—' },
+            groupement !== 'boutique' && { titre: 'Boutique', rendu: (c) => noms.shops[c.shop_id] ?? '—' },
             { titre: 'Total', rendu: (c) => htg(c.total), className: 'whitespace-nowrap' },
             {
               titre: 'Statut',
@@ -90,7 +108,7 @@ export default function Commandes() {
               className: 'text-right',
               rendu: (c) => <Bouton variante="clair" onClick={() => setSelection(c)}>Détail</Bouton>,
             },
-          ]}
+          ].filter(Boolean)}
         />
         {selection && (
           <DetailCommande
