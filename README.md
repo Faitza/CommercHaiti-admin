@@ -39,6 +39,27 @@ Chaque action admin est enregistrée dans la table `admin_logs`.
 2. *Environment Variables* : `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`.
 3. *Deploy*. `vercel.json` redirige toutes les routes vers `index.html` (navigation SPA).
 
+## Lien produit partagé (`/p/<id>`)
+
+Le message WhatsApp de l'app mobile contient `https://commerc-haiti-admin.vercel.app/p/<id>`.
+`vercel.json` envoie ces liens vers la fonction `api/produit.js`, qui affiche une page publique
+du produit (photo, prix, boutique, « RUPTURE DE STOCK » si le stock est à 0) avec les boutons
+« Ouvrir dans l'app » (Android) et « Télécharger l'app ». Elle lit Supabase avec la clé anon
+(mêmes variables `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`).
+
+Pour que le lien ouvre l'app **directement** (sans passer par cette page), ajouter
+`public/.well-known/assetlinks.json` avec l'empreinte SHA-256 de la clé de signature de l'app :
+```json
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.example.commerchaiti",
+    "sha256_cert_fingerprints": ["AA:BB:…"]
+  }
+}]
+```
+
 ## Couleurs
 
 Navy `#0D2B5E` · Rouge `#E63946` (définies dans `src/index.css`).
